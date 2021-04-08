@@ -112,3 +112,6 @@ def crawl():
             os.waitpid(pr, 0)
 
         break
+
+
+crawl()
