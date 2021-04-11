@@ -54,6 +54,9 @@ def page_posts(board, threads):
                 data['posts'][j]['crawlTime'] = crawlTime
                 data['posts'][j]['board'] = board
 
+                if "tim" in data['posts'][j] and data['posts'][j]['ext'] is not ".swf":
+                    data['posts'][j]['img_link'] = f"https://i.4cdn.org/{board}/{data['posts'][j]['tim']}{data['posts'][j]['ext']}"
+
                 load(data['posts'][j])
 
 
@@ -135,4 +138,4 @@ def single_crawl(channel):
 
 
 # crawl()
-single_crawl('f')
+single_crawl('n')
