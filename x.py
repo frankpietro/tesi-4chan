@@ -42,13 +42,11 @@ def all_boards():
 
 # returns info about every post and reply on a certain page
 def page_posts(board, threads):
-    info_page = []
-
+    print("Crawling...")
     for i in range(0, len(threads)):
         endpoint = f"https://a.4cdn.org/{board}/thread/{threads[i]['no']}.json"
         data = get_json(endpoint)
 
-        info_thread = []
         if data:
             for j in range(0, len(data['posts'])):
                 global crawlTime
@@ -57,11 +55,6 @@ def page_posts(board, threads):
                 data['posts'][j]['board'] = board
 
                 load(data['posts'][j])
-                info_thread.append(data['posts'][j])
-
-        info_page.append(info_thread)
-
-    return info_page
 
 
 # returns every info about everything in a board
@@ -69,22 +62,21 @@ def thread_list(board):
     endpoint = f"https://a.4cdn.org/{board}/threads.json"
     data = get_json(endpoint)
 
-    info_board = []
     for i in range(0, len(data)):
-        print(f"Process {os.getpid()} working on board {board}")
-        info_board.append(page_posts(board, data[i]['threads']))
-
-    print(info_board)
+        print(f"Process {os.getpid()} working on board {board} at page {i+1}")
+        page_posts(board, data[i]['threads'])
 
     print(f"End of board {board} analysis")
 
 
+# allows multiple process to share an array
 manager = multiprocessing.Manager()
 
 
 # retrieves the whole 4chan platform
 def crawl():
     global crawlTime
+
     crawlTime = datetime.now()
 
     boards = list(all_boards())
@@ -114,4 +106,33 @@ def crawl():
         break
 
 
-crawl()
+# collects every post of a given channel
+def single_crawl(channel):
+    global crawlTime
+
+    crawlTime = datetime.now()
+
+    endpoint = f"https://a.4cdn.org/{channel}/threads.json"
+    data = get_json(endpoint)
+
+    print(f"The board {channel} has {len(data)} pages")
+
+    children = []
+
+    for i in range(0, len(data)):
+        pid = os.fork()
+        if pid > 0:
+            print("This is the parent process {}".format(os.getpid()))
+            children.append(pid)
+        else:
+            print("This is the child process {}".format(os.getpid()))
+            page_posts(channel, data[i]['threads'])
+            print("Process {} exiting".format(os.getpid()))
+            os._exit(0)
+
+    for j, pr in enumerate(children):
+        os.waitpid(pr, 0)
+
+
+# crawl()
+single_crawl('f')
