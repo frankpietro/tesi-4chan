@@ -1,16 +1,17 @@
 import requests
-import os
 import multiprocessing
 from elasticsearch import Elasticsearch
 from datetime import datetime
 import logging
 from time import time
+from log_functions import *
 
 logging.getLogger("elasticsearch").setLevel(logging.CRITICAL)
 
 crawlTime = 0
 
 
+# checks Elasticsearch connection
 def connect():
     try:
         Elasticsearch([{'host': 'localhost', 'port': '9200'}]).info()
@@ -21,8 +22,11 @@ def connect():
 
 # load data on ElasticSearch
 def load(json_post):
-    es = Elasticsearch([{'host': 'localhost', 'port': '9200'}])
-    es.index(index='4chan_index', ignore=400, body=json_post)
+    try:
+        es = Elasticsearch([{'host': 'localhost', 'port': '9200'}])
+        es.index(index='4chan_index', ignore=400, body=json_post)
+    except:
+        log_error(f"Error while loading post {json_post['no']} on Elasticsearch")
 
 
 # returns json data from a given page
@@ -33,11 +37,11 @@ def get_json(endpoint):
         json_data = response.json()
         return json_data
     elif response.status_code == 404:
-        json_data = None
-        return json_data
+        log_error(f"Could not reach {endpoint}")
+        return None
     else:
-        print("Status Code: ", response.status_code)
-        print("Response Content: ", response.content)
+        log_error(f"Error {response.status_code} while trying to reach {endpoint}. Response content: {response.content}")
+        return None
 
 
 # returns list of all boards
@@ -82,6 +86,9 @@ manager = multiprocessing.Manager()
 
 # collects every post of a given channel
 def single_crawl(channel, max_process):
+    create_log_file()
+    log_write(f"Crawling channel {channel}")
+
     global crawlTime
 
     crawlTime = datetime.now()
@@ -91,7 +98,7 @@ def single_crawl(channel, max_process):
     endpoint = f"https://a.4cdn.org/{channel}/threads.json"
     data = get_json(endpoint)
 
-    print(f"The board {channel} has {len(data)} pages")
+    log_write(f"Channel {channel} has {len(data)} pages")
 
     posts = manager.list()
 
@@ -100,35 +107,33 @@ def single_crawl(channel, max_process):
     process_num = len(data) if len(data) < max_process else max_process
     crawl_num = int((len(data) - 1) / max_process) + 1
 
+    ch = "child" if process_num == 1 else "children"
+
+    log_write(f"Parent process {os.getpid()} creating {process_num} {ch}")
+
     for i in range(0, process_num):
         pid = os.fork()
         if pid > 0:
-            print("This is the parent process {}".format(os.getpid()))
             children.append(pid)
         else:
-            print(f"Process {os.getpid()} working on board {channel} at page {i}")
+            log_write(f"Process {os.getpid()} working on board {channel} at page {i}")
             posts_number = 0
             posts_number += page_posts(channel, data[i]['threads'])
             if len(data) > max_process:
                 for k in range(1, crawl_num):
                     if max_process * k + i < len(data):
-                        print(f"Process {os.getpid()} working on board {channel} at page {max_process * k + i}")
+                        log_write(f"Process {os.getpid()} working on board {channel} at page {max_process * k + i}")
                         posts_number += page_posts(channel, data[max_process * k + i]['threads'])
-            print("Process {} exiting".format(os.getpid()))
+            log_write("Process {} exiting".format(os.getpid()))
             posts.append(posts_number)
             os._exit(0)
 
     for j, pr in enumerate(children):
         os.waitpid(pr, 0)
 
+    log_end(f"Crawling of channel {channel} ended")
+
     tot_posts = sum(posts)
-
     end = time()
-
     execution_time = round(end - start, 3)
-
     return process_num, tot_posts, execution_time
-
-
-def create_log_file():
-    f = open("logfile.txt", "x")

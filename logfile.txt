@@ -1,0 +1,5 @@
+(I) Crawling channel f
+(I) Parent process 9663 creating 1 child
+(I) Process 9696 working on board f at page 0
+(I) Process 9696 exiting
+(S) Crawling of channel f ended
