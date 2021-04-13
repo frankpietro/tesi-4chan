@@ -3,9 +3,19 @@ import os
 import multiprocessing
 from elasticsearch import Elasticsearch
 from datetime import datetime
+import logging
 
+logging.getLogger("elasticsearch").setLevel(logging.CRITICAL)
 
 crawlTime = 0
+
+
+def connect():
+    try:
+        Elasticsearch([{'host': 'localhost', 'port': '9200'}]).info()
+        return "connected"
+    except:
+        return "not_connected"
 
 
 # load data on ElasticSearch
@@ -43,6 +53,7 @@ def all_boards():
 
 # returns info about every post and reply on a certain page
 def page_posts(board, threads):
+    page_posts_number = 0
     for i in range(0, len(threads)):
         endpoint = f"https://a.4cdn.org/{board}/thread/{threads[i]['no']}.json"
         data = get_json(endpoint)
@@ -55,58 +66,17 @@ def page_posts(board, threads):
                 data['posts'][j]['board'] = board
 
                 if "tim" in data['posts'][j] and data['posts'][j]['ext'] != ".swf":
-                    data['posts'][j]['img_link'] = f"https://i.4cdn.org/{board}/{data['posts'][j]['tim']}{data['posts'][j]['ext']}"
+                    data['posts'][j][
+                        'img_link'] = f"https://i.4cdn.org/{board}/{data['posts'][j]['tim']}{data['posts'][j]['ext']}"
 
                 load(data['posts'][j])
+                page_posts_number += 1
 
-
-# returns every info about everything in a board
-def thread_list(board):
-    endpoint = f"https://a.4cdn.org/{board}/threads.json"
-    data = get_json(endpoint)
-
-    for i in range(0, len(data)):
-        print(f"Process {os.getpid()} working on board {board} at page {i}")
-        print("Crawling...")
-        page_posts(board, data[i]['threads'])
-
-    print(f"End of board {board} analysis")
+    return page_posts_number
 
 
 # allows multiple process to share an array
 manager = multiprocessing.Manager()
-
-
-# retrieves the whole 4chan platform
-def full_crawl():
-    global crawlTime
-
-    crawlTime = datetime.now()
-
-    boards = list(all_boards())
-
-    ex_b = manager.list()
-
-    while True:
-        children = []
-        for k in range(0, len(boards)):
-            pid = os.fork()
-            if pid > 0:
-                children.append(pid)
-            else:
-                print("This is the child process {}".format(os.getpid()))
-                print(f"Board associated: {boards[k]}")
-                thread_list(boards[k])
-                ex_b.append(boards[k])
-                ex_b.sort()
-                print(f"Examined {len(ex_b)} boards: {ex_b}. {len(boards)-len(ex_b)} remaining")
-                print("Process {} exiting".format(os.getpid()))
-                os._exit(0)
-
-        for i, pr in enumerate(children):
-            os.waitpid(pr, 0)
-
-        break
 
 
 # collects every post of a given channel
@@ -120,10 +90,12 @@ def single_crawl(channel, max_process):
 
     print(f"The board {channel} has {len(data)} pages")
 
+    posts = manager.list()
+
     children = []
 
     process_num = len(data) if len(data) < max_process else max_process
-    crawl_num = int((len(data)-1)/max_process) + 1
+    crawl_num = int((len(data) - 1) / max_process) + 1
 
     for i in range(0, process_num):
         pid = os.fork()
@@ -132,14 +104,20 @@ def single_crawl(channel, max_process):
             children.append(pid)
         else:
             print(f"Process {os.getpid()} working on board {channel} at page {i}")
-            page_posts(channel, data[i]['threads'])
+            posts_number = 0
+            posts_number += page_posts(channel, data[i]['threads'])
             if len(data) > max_process:
                 for k in range(1, crawl_num):
-                    if max_process*k+i < len(data):
-                        print(f"Process {os.getpid()} working on board {channel} at page {max_process*k+i}")
-                        page_posts(channel, data[max_process*k+i]['threads'])
+                    if max_process * k + i < len(data):
+                        print(f"Process {os.getpid()} working on board {channel} at page {max_process * k + i}")
+                        posts_number += page_posts(channel, data[max_process * k + i]['threads'])
             print("Process {} exiting".format(os.getpid()))
+            posts.append(posts_number)
             os._exit(0)
 
     for j, pr in enumerate(children):
         os.waitpid(pr, 0)
+
+    tot_posts = sum(posts)
+
+    return process_num, tot_posts
