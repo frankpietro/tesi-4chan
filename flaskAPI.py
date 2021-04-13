@@ -50,4 +50,20 @@ def log():
     return {'log': 'created'}
 
 
+@app.route('/check_log', methods=['GET'])
+def check_log():
+    if not os.path.exists("logfile.txt"):
+        return {'_status': 'no_log_file'}
+
+    f = open("logfile.txt", "r")
+    logs = f.readlines()
+    for log_line in reversed(logs):
+        if log_line.startswith("(S)"):
+            return {'_status': 'no_current_crawling'}
+        if log_line.startswith("(E)"):
+            return {'_status': 'error', 'error_log': log_line}
+
+    return {'_status': 'crawling_ok'}
+
+
 app.run()

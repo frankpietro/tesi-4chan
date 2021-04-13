@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 
 def create_log_file():
@@ -21,6 +22,7 @@ def log_end(message):
 
 
 def log_mess(tag, message):
+    timestamp = datetime.now()
     f = open("logfile.txt", "a")
-    f.write(tag + message + "\n")
+    f.write(tag + timestamp + ' ' + message + "\n")
     f.close()

@@ -1,7 +1,6 @@
 import requests
 import multiprocessing
-from elasticsearch import Elasticsearch
-from datetime import datetime
+from elasticsearch import Elasticsearch/
 import logging
 from time import time
 from log_functions import *
@@ -24,7 +23,7 @@ def connect():
 def load(json_post):
     try:
         es = Elasticsearch([{'host': 'localhost', 'port': '9200'}])
-        es.index(index='4chan_index', ignore=400, body=json_post)
+        es.index(index='4chan_index', id=json_post['no'], body=json_post)
     except:
         log_error(f"Error while loading post {json_post['no']} on Elasticsearch")
 
