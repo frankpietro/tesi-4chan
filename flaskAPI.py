@@ -1,10 +1,6 @@
 import flask
 from flask import request, jsonify
-from time import time
 from utilities import *
-import logging
-
-logging.getLogger("elasticsearch").setLevel(logging.CRITICAL)
 
 processLimit = 5
 
@@ -23,7 +19,6 @@ def home():
 
 @app.route('/crawl', methods=['GET'])
 def crawl():
-    start = time()
     es_status = connect()
     if es_status == 'not_connected':
         return {'_status': 'error', 'error_type': 'elasticsearch_not_connected'}
@@ -37,11 +32,7 @@ def crawl():
         else:
             max_proc = processLimit
 
-        proc_num, total_posts = single_crawl(request.args['ch'], max_proc)
-
-        end = time()
-
-        execution_time = round(end - start, 3)
+        proc_num, total_posts, execution_time = single_crawl(request.args['ch'], max_proc)
 
         return {
             '_status': 'success',

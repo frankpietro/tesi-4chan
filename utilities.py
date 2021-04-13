@@ -4,6 +4,7 @@ import multiprocessing
 from elasticsearch import Elasticsearch
 from datetime import datetime
 import logging
+from time import time
 
 logging.getLogger("elasticsearch").setLevel(logging.CRITICAL)
 
@@ -85,6 +86,8 @@ def single_crawl(channel, max_process):
 
     crawlTime = datetime.now()
 
+    start = time()
+
     endpoint = f"https://a.4cdn.org/{channel}/threads.json"
     data = get_json(endpoint)
 
@@ -120,4 +123,8 @@ def single_crawl(channel, max_process):
 
     tot_posts = sum(posts)
 
-    return process_num, tot_posts
+    end = time()
+
+    execution_time = round(end - start, 3)
+
+    return process_num, tot_posts, execution_time
