@@ -13,8 +13,7 @@ app.config["DEBUG"] = True
 @app.route('/test_connection', methods=['GET'])
 def home():
     es_status = connect()
-    ret = {'elasticsearch': es_status}
-    return jsonify(ret)
+    return {'elasticsearch': es_status}
 
 
 @app.route('/crawl', methods=['GET'])
@@ -25,7 +24,7 @@ def crawl():
 
     if 'ch' in request.args:
         if request.args['ch'] not in all_boards():
-            return jsonify({'_status': 'error', 'error_type': 'channel_not_existing'})
+            return {'_status': 'error', 'error_type': 'channel_not_existing'}
 
         if 'max' in request.args and int(request.args['max']) > 0:
             max_proc = int(request.args['max'])
@@ -43,6 +42,12 @@ def crawl():
         }
 
     return {'_status': 'error', 'error_type': 'channel_not_specified'}
+
+
+@app.route('/create_log', methods=['GET'])
+def log():
+    create_log_file()
+    return {'log': 'created'}
 
 
 app.run()

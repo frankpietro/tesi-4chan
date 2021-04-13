@@ -128,3 +128,7 @@ def single_crawl(channel, max_process):
     execution_time = round(end - start, 3)
 
     return process_num, tot_posts, execution_time
+
+
+def create_log_file():
+    f = open("logfile.txt", "x")
