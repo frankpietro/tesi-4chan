@@ -1,6 +1,6 @@
 import requests
 import multiprocessing
-from elasticsearch import Elasticsearch/
+from elasticsearch import Elasticsearch
 import logging
 from time import time
 from log_functions import *
