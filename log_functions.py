@@ -22,7 +22,7 @@ def log_end(message):
 
 
 def log_mess(tag, message):
-    timestamp = datetime.now()
+    timestamp = str(datetime.now())
     f = open("logfile.txt", "a")
     f.write(tag + timestamp + ' ' + message + "\n")
     f.close()

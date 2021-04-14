@@ -9,6 +9,27 @@ logging.getLogger("elasticsearch").setLevel(logging.CRITICAL)
 
 crawlTime = 0
 
+request_body = {
+    "mappings": {
+        "properties": {
+            "no": {
+                "type": "keyword"
+            },
+            "now": {
+                "type": "date",
+                "format": "MM/dd/yy(EEE)HH:mm:ss"
+            },
+            "resto": {
+                "type": "keyword"
+            },
+            "time": {
+                "type": "date",
+                "format": "epoch_second"
+            }
+        }
+    }
+}
+
 
 # checks Elasticsearch connection
 def connect():
@@ -89,10 +110,24 @@ def single_crawl(channel, max_process):
     log_write(f"Crawling channel {channel}")
 
     global crawlTime
-
     crawlTime = datetime.now()
 
     start = time()
+
+    try:
+        es = Elasticsearch([{'host': 'localhost', 'port': '9200'}])
+    except:
+        log_error("Failed to connect to Elasticsearch")
+        return 0, 0, 0
+
+    if not es.indices.exists('4chan_index'):
+        log_write("Index 4chan_index not existing. Creating")
+        try:
+            es.indices.create(index='4chan_index', body=request_body)
+            log_write("Creation of index 4chan_index successful")
+        except:
+            log_error("Creation of index 4chan_index failed. Aborting")
+            return 0, 0, 0
 
     endpoint = f"https://a.4cdn.org/{channel}/threads.json"
     data = get_json(endpoint)

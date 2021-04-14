@@ -33,6 +33,12 @@ def crawl():
 
         proc_num, total_posts, execution_time = single_crawl(request.args['ch'], max_proc)
 
+        if proc_num == 0:
+            return {
+                '_status': 'error',
+                'error_type': 'crawling_aborted'
+            }
+
         return {
             '_status': 'success',
             'channel': request.args['ch'],
@@ -57,7 +63,7 @@ def delete_index():
             es = Elasticsearch([{'host': 'localhost', 'port': '9200'}])
         except:
             return {'_status': 'error', 'error_type': 'elasticsearch_not_connected'}
-        if es.indices.exists(request.args):
+        if es.indices.exists(request.args['index']):
             try:
                 es.indices.delete(request.args['index'])
             except:
