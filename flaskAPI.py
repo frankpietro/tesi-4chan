@@ -13,6 +13,7 @@ app.config["DEBUG"] = True
 @app.route('/test_connection', methods=['GET'])
 def home():
     es_status = connect()
+    print(all_boards())
     return {'elasticsearch': es_status}
 
 
@@ -48,12 +49,6 @@ def crawl():
         }
 
     return {'_status': 'error', 'error_type': 'channel_not_specified'}
-
-
-@app.route('/create_log', methods=['GET'])
-def log():
-    create_log_file()
-    return {'log': 'created'}
 
 
 @app.route('/delete_index', methods=['GET'])

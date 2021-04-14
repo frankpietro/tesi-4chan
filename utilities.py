@@ -58,10 +58,10 @@ def get_json(endpoint):
         return json_data
     elif response.status_code == 404:
         log_error(f"Could not reach {endpoint}")
-        return None
+        return -1
     else:
         log_error(f"Error {response.status_code} while trying to reach {endpoint}. Response content: {response.content}")
-        return None
+        return -1
 
 
 # returns list of all boards
@@ -83,19 +83,21 @@ def page_posts(board, threads):
         endpoint = f"https://a.4cdn.org/{board}/thread/{threads[i]['no']}.json"
         data = get_json(endpoint)
 
-        if data:
-            for j in range(0, len(data['posts'])):
-                global crawlTime
+        if data == -1:
+            return -1
 
-                data['posts'][j]['crawlTime'] = crawlTime
-                data['posts'][j]['board'] = board
+        for j in range(0, len(data['posts'])):
+            global crawlTime
 
-                if "tim" in data['posts'][j] and data['posts'][j]['ext'] != ".swf":
-                    data['posts'][j][
-                        'img_link'] = f"https://i.4cdn.org/{board}/{data['posts'][j]['tim']}{data['posts'][j]['ext']}"
+            data['posts'][j]['crawlTime'] = crawlTime
+            data['posts'][j]['board'] = board
 
-                load(data['posts'][j])
-                page_posts_number += 1
+            if "tim" in data['posts'][j] and data['posts'][j]['ext'] != ".swf":
+                data['posts'][j][
+                    'img_link'] = f"https://i.4cdn.org/{board}/{data['posts'][j]['tim']}{data['posts'][j]['ext']}"
+
+            load(data['posts'][j])
+            page_posts_number += 1
 
     return page_posts_number
 
@@ -118,6 +120,7 @@ def single_crawl(channel, max_process):
         es = Elasticsearch([{'host': 'localhost', 'port': '9200'}])
     except:
         log_error("Failed to connect to Elasticsearch")
+        log_abort()
         return 0, 0, 0
 
     if not es.indices.exists('4chan_index'):
@@ -131,6 +134,9 @@ def single_crawl(channel, max_process):
 
     endpoint = f"https://a.4cdn.org/{channel}/threads.json"
     data = get_json(endpoint)
+    if not data:
+        log_abort()
+        return 0, 0, 0
 
     log_write(f"Channel {channel} has {len(data)} pages")
 
@@ -152,12 +158,18 @@ def single_crawl(channel, max_process):
         else:
             log_write(f"Process {os.getpid()} working on board {channel} at page {i}")
             posts_number = 0
-            posts_number += page_posts(channel, data[i]['threads'])
+            new_posts = page_posts(channel, data[i]['threads'])
+            if new_posts != -1:
+                posts_number += new_posts
+
             if len(data) > max_process:
                 for k in range(1, crawl_num):
                     if max_process * k + i < len(data):
                         log_write(f"Process {os.getpid()} working on board {channel} at page {max_process * k + i}")
-                        posts_number += page_posts(channel, data[max_process * k + i]['threads'])
+                        new_posts = page_posts(channel, data[max_process * k + i]['threads'])
+                        if new_posts != -1:
+                            posts_number += new_posts
+
             log_write("Process {} exiting".format(os.getpid()))
             posts.append(posts_number)
             os._exit(0)
@@ -168,6 +180,8 @@ def single_crawl(channel, max_process):
     log_end(f"Crawling of channel {channel} ended")
 
     tot_posts = sum(posts)
+
     end = time()
     execution_time = round(end - start, 3)
+
     return process_num, tot_posts, execution_time

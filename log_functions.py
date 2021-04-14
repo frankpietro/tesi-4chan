@@ -21,6 +21,10 @@ def log_end(message):
     log_mess("(S) ", message)
 
 
+def log_abort():
+    log_mess("(A) ", "Crawling aborted")
+
+
 def log_mess(tag, message):
     timestamp = str(datetime.now())
     f = open("logfile.txt", "a")
