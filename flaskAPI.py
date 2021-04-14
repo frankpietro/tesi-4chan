@@ -50,6 +50,26 @@ def log():
     return {'log': 'created'}
 
 
+@app.route('/delete_index', methods=['GET'])
+def delete_index():
+    if 'index' in request.args:
+        try:
+            es = Elasticsearch([{'host': 'localhost', 'port': '9200'}])
+        except:
+            return {'_status': 'error', 'error_type': 'elasticsearch_not_connected'}
+        if es.indices.exists(request.args):
+            try:
+                es.indices.delete(request.args['index'])
+            except:
+                return {'_status': 'error', 'error_type': 'deletion_failed'}
+
+            return {'_status': 'ok', 'deleted_index': request.args['index']}
+
+        return {'_status': 'error', 'error_type': 'index_not_existing', 'index': f"{request.args['index']}"}
+
+    return {'_status': 'error', 'error_type': 'index_not_specified'}
+
+
 @app.route('/check_log', methods=['GET'])
 def check_log():
     if not os.path.exists("logfile.txt"):
