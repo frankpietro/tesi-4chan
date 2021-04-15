@@ -51,6 +51,28 @@ def crawl():
     return {'_status': 'error', 'error_type': 'channel_not_specified'}
 
 
+@app.route('/check_log', methods=['GET'])
+def check_log():
+    if not os.path.exists("logfile.txt"):
+        return {'_status': 'no_log_file'}
+
+    f = open("logfile.txt", "r")
+    logs = f.readlines()
+    errors = ''
+    for log_line in reversed(logs):
+        if log_line.startswith("(S)"):
+            return {'_status': 'crawling_ended'}
+        if log_line.startswith("(A)"):
+            return {'_status': 'crawling_aborted'}
+        if log_line.startswith("(E)"):
+            errors += log_line
+
+    if errors != '':
+        return {'_status': 'error', 'error_log': errors}
+
+    return {'_status': 'crawling_ok'}
+
+
 @app.route('/delete_index', methods=['GET'])
 def delete_index():
     if 'index' in request.args:
@@ -66,25 +88,9 @@ def delete_index():
 
             return {'_status': 'ok', 'deleted_index': request.args['index']}
 
-        return {'_status': 'error', 'error_type': 'index_not_existing', 'index': f"{request.args['index']}"}
+        return {'_status': 'error', 'error_type': 'index_not_existing', 'index': request.args['index']}
 
     return {'_status': 'error', 'error_type': 'index_not_specified'}
-
-
-@app.route('/check_log', methods=['GET'])
-def check_log():
-    if not os.path.exists("logfile.txt"):
-        return {'_status': 'no_log_file'}
-
-    f = open("logfile.txt", "r")
-    logs = f.readlines()
-    for log_line in reversed(logs):
-        if log_line.startswith("(S)"):
-            return {'_status': 'no_current_crawling'}
-        if log_line.startswith("(E)"):
-            return {'_status': 'error', 'error_log': log_line}
-
-    return {'_status': 'crawling_ok'}
 
 
 app.run()

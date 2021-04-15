@@ -10,23 +10,23 @@ def create_log_file():
 
 
 def log_write(message):
-    log_mess("(I) ", message)
+    log_mess("(I)", message)
 
 
 def log_error(message):
-    log_mess("(E) ", message)
+    log_mess("(E)", message)
 
 
 def log_end(message):
-    log_mess("(S) ", message)
+    log_mess("(S)", message)
 
 
 def log_abort():
-    log_mess("(A) ", "Crawling aborted")
+    log_mess("(A)", "Crawling aborted")
 
 
 def log_mess(tag, message):
     timestamp = str(datetime.now())
     f = open("logfile.txt", "a")
-    f.write(tag + timestamp + ' ' + message + "\n")
+    f.write(f"{tag} {timestamp} {message}\n")
     f.close()

@@ -30,6 +30,12 @@ request_body = {
     }
 }
 
+board_list = ['3', 'a', 'aco', 'adv', 'an', 'asp', 'b', 'bant', 'biz', 'c', 'cgl', 'ck', 'cm', 'co', 'd', 'diy', 'e',
+              'f', 'fa', 'fit', 'g', 'gd', 'gif', 'h', 'hc', 'his', 'hm', 'hr', 'i', 'ic', 'int', 'jp', 'k', 'lgbt',
+              'lit', 'm', 'mlp', 'mu', 'n', 'news', 'o', 'out', 'p', 'po', 'pol', 'pw', 'qa', 'qst', 'r', 'r9k', 's',
+              's4s', 'sci', 'soc', 'sp', 't', 'tg', 'toy', 'trash', 'trv', 'tv', 'u', 'v', 'vg', 'vip', 'vm', 'vmg',
+              'vp', 'vr', 'vrpg', 'vst', 'vt', 'w', 'wg', 'wsg', 'wsr', 'x', 'xs', 'y']
+
 
 # checks Elasticsearch connection
 def connect():
@@ -66,13 +72,6 @@ def get_json(endpoint):
 
 # returns list of all boards
 def all_boards():
-    endpoint = "https://a.4cdn.org/boards.json"
-    data = get_json(endpoint)
-
-    board_list = []
-    for k in range(0, len(data['boards'])):
-        board_list.append(data['boards'][k]['board'])
-
     return board_list
 
 
@@ -138,7 +137,8 @@ def single_crawl(channel, max_process):
         log_abort()
         return 0, 0, 0
 
-    log_write(f"Channel {channel} has {len(data)} pages")
+    pg = "page" if len(data) == 1 else "pages"
+    log_write(f"Channel {channel} has {len(data)} {pg}")
 
     posts = manager.list()
 
