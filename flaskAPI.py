@@ -1,9 +1,13 @@
 import flask
 from flask import request
 from utilities import *
+from spacy.tokenizer import Tokenizer
+from spacy.lang.en import English
 
 processLimit = 5
 
+nlp = English()
+tokenizer = nlp.tokenizer
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
@@ -13,7 +17,7 @@ app.config["DEBUG"] = True
 @app.route('/test_connection', methods=['GET'])
 def home():
     es_status = connect()
-    print(all_boards())
+    print(stop_words)
     return {'elasticsearch': es_status}
 
 

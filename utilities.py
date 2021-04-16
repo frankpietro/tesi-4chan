@@ -5,6 +5,8 @@ import logging
 import re
 from time import time
 from log_functions import *
+import nltk
+from nltk.corpus import stopwords
 
 logging.getLogger("elasticsearch").setLevel(logging.CRITICAL)
 
@@ -37,12 +39,20 @@ board_list = ['3', 'a', 'aco', 'adv', 'an', 'asp', 'b', 'bant', 'biz', 'c', 'cgl
               's4s', 'sci', 'soc', 'sp', 't', 'tg', 'toy', 'trash', 'trv', 'tv', 'u', 'v', 'vg', 'vip', 'vm', 'vmg',
               'vp', 'vr', 'vrpg', 'vst', 'vt', 'w', 'wg', 'wsg', 'wsr', 'x', 'xs', 'y']
 
-clean_r = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
+clean_r = re.compile('<.*?>|&gt;&gt;[0-9]{1,8}|&([a-z0-9]+;|#[0-9]{1,6}|#x[0-9a-f]{1,6})|#p[0-9]{1,8};')
+url_r = re.compile(r'(https?://\S+)')
+
+stop_words = set(stopwords.words('english'))
+stop_words.update({'I', "I'll", '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'})
 
 
 # inputs html, outputs plain text without tags or html entities
 def clean_html(raw_html):
-    return re.sub(clean_r, '', raw_html)
+    return re.sub(clean_r, '', raw_html.replace('&#039;', '\'').replace('<br>', ' ').replace('&amp;', '&'))
+
+
+def find_urls(raw_html):
+    return re.findall(url_r, raw_html)
 
 
 # checks Elasticsearch connection
@@ -98,7 +108,16 @@ def page_posts(board, threads):
 
             data['posts'][j]['crawlTime'] = crawlTime
             data['posts'][j]['board'] = board
-            data['posts'][j]['plain_text'] = clean_html(data['posts'][j]['com'])
+
+            if "com" in data['posts'][j]:
+                data['posts'][j]['plain_text'] = clean_html(data['posts'][j]['com'])
+
+                data['posts'][j]['urls'] = find_urls(data['posts'][j]['plain_text'])
+
+                all_words = data['posts'][j]['plain_text'].split()
+
+                data['posts'][j]['all_words'] = all_words
+                data['posts'][j]['words'] = [w for w in all_words if w not in stop_words]
 
             if "tim" in data['posts'][j] and data['posts'][j]['ext'] != ".swf":
                 data['posts'][j][
