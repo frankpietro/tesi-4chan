@@ -2,6 +2,7 @@ import requests
 import multiprocessing
 from elasticsearch import Elasticsearch
 import logging
+import re
 from time import time
 from log_functions import *
 
@@ -35,6 +36,13 @@ board_list = ['3', 'a', 'aco', 'adv', 'an', 'asp', 'b', 'bant', 'biz', 'c', 'cgl
               'lit', 'm', 'mlp', 'mu', 'n', 'news', 'o', 'out', 'p', 'po', 'pol', 'pw', 'qa', 'qst', 'r', 'r9k', 's',
               's4s', 'sci', 'soc', 'sp', 't', 'tg', 'toy', 'trash', 'trv', 'tv', 'u', 'v', 'vg', 'vip', 'vm', 'vmg',
               'vp', 'vr', 'vrpg', 'vst', 'vt', 'w', 'wg', 'wsg', 'wsr', 'x', 'xs', 'y']
+
+clean_r = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
+
+
+# inputs html, outputs plain text without tags or html entities
+def clean_html(raw_html):
+    return re.sub(clean_r, '', raw_html)
 
 
 # checks Elasticsearch connection
@@ -90,6 +98,7 @@ def page_posts(board, threads):
 
             data['posts'][j]['crawlTime'] = crawlTime
             data['posts'][j]['board'] = board
+            data['posts'][j]['plain_text'] = clean_html(data['posts'][j]['com'])
 
             if "tim" in data['posts'][j] and data['posts'][j]['ext'] != ".swf":
                 data['posts'][j][
