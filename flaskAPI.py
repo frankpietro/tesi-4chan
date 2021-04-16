@@ -72,7 +72,7 @@ def check_log():
             errors += log_line
 
     if errors != '':
-        return {'_status': 'error', 'error_log': errors}
+        return {'_status': 'warning', 'error_log': errors}
 
     return {'_status': 'crawling_ok'}
 
