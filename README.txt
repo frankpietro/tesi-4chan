@@ -1,4 +1,4 @@
-This project features a Flask-based crawler for 4chan.
+This project features a Flask-based crawler for 4chan. Channels can only be crawled one by one.
 
 APIs: /test_connection, /crawl, /check_log, /delete_index
 
