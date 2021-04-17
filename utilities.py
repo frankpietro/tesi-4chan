@@ -5,14 +5,13 @@ import logging
 import re
 from time import time
 from log_functions import *
-import nltk
 from nltk.corpus import stopwords
 
 logging.getLogger("elasticsearch").setLevel(logging.CRITICAL)
 
 crawlTime = 0
 
-request_body = {
+mapping = {
     "mappings": {
         "properties": {
             "no": {
@@ -44,6 +43,11 @@ url_r = re.compile(r'(https?://\S+)')
 
 stop_words = set(stopwords.words('english'))
 stop_words.update({'I', "I'll", "I'm", '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'})
+
+
+# useful for Flask APIs
+def error_json(error_type):
+    return {'_status': 'error', 'error_type': error_type}
 
 
 # inputs html, outputs plain text without tags or html entities
@@ -84,7 +88,7 @@ def get_json(endpoint):
         log_error(f"Could not reach {endpoint}")
         return -1
     else:
-        log_error(f"Error {response.status_code} while trying to reach {endpoint}. Response content: {response.content}")
+        log_error(f"Error {response.status_code} while trying to reach {endpoint}. Response: {response.content}")
         return -1
 
 
@@ -108,6 +112,7 @@ def page_posts(board, threads):
 
             data['posts'][j]['crawlTime'] = crawlTime
             data['posts'][j]['board'] = board
+            data['posts'][j]['endpoint'] = endpoint
 
             if "com" in data['posts'][j]:
                 data['posts'][j]['plain_text'] = clean_html(data['posts'][j]['com'])
@@ -129,12 +134,12 @@ def page_posts(board, threads):
     return page_posts_number
 
 
-# allows multiple process to share an array
+# allows multiple process to share resources
 manager = multiprocessing.Manager()
 
 
 # collects every post of a given channel
-def single_crawl(channel, max_process):
+def single_crawl(index, channel, max_process):
     create_log_file()
     log_write(f"Crawling channel {channel}")
 
@@ -150,13 +155,13 @@ def single_crawl(channel, max_process):
         log_abort()
         return 0, 0, 0
 
-    if not es.indices.exists('4chan_index'):
-        log_write("Index 4chan_index not existing. Creating")
+    if not es.indices.exists(index):
+        log_write(f"Index {index} not existing. Creating")
         try:
-            es.indices.create(index='4chan_index', body=request_body)
-            log_write("Creation of index 4chan_index successful")
+            es.indices.create(index=index, body=mapping)
+            log_write(f"Creation of index {index} successful")
         except:
-            log_error("Creation of index 4chan_index failed. Aborting")
+            log_error(f"Creation of index {index} failed. Aborting")
             return 0, 0, 0
 
     endpoint = f"https://a.4cdn.org/{channel}/threads.json"
