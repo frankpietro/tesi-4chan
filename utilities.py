@@ -74,7 +74,7 @@ def load(json_post):
         es = Elasticsearch([{'host': 'localhost', 'port': '9200'}])
         es.index(index='4chan_index', id=json_post['no'], body=json_post)
     except:
-        log_error(f"Error while loading post {json_post['no']} on Elasticsearch")
+        log_warning(f"Error while loading post {json_post['no']} on Elasticsearch")
 
 
 # returns json data from a given page
@@ -85,10 +85,10 @@ def get_json(endpoint):
         json_data = response.json()
         return json_data
     elif response.status_code == 404:
-        log_error(f"Could not reach {endpoint}")
+        log_warning(f"Could not reach {endpoint}")
         return -1
     else:
-        log_error(f"Error {response.status_code} while trying to reach {endpoint}. Response: {response.content}")
+        log_warning(f"Error {response.status_code} while trying to reach {endpoint}. Response: {response.content}")
         return -1
 
 
@@ -151,7 +151,7 @@ def single_crawl(index, channel, max_process):
     try:
         es = Elasticsearch([{'host': 'localhost', 'port': '9200'}])
     except:
-        log_error("Failed to connect to Elasticsearch")
+        log_warning("Failed to connect to Elasticsearch")
         log_abort()
         return 0, 0, 0
 
@@ -161,7 +161,7 @@ def single_crawl(index, channel, max_process):
             es.indices.create(index=index, body=mapping)
             log_write(f"Creation of index {index} successful")
         except:
-            log_error(f"Creation of index {index} failed. Aborting")
+            log_warning(f"Creation of index {index} failed. Aborting")
             return 0, 0, 0
 
     endpoint = f"https://a.4cdn.org/{channel}/threads.json"

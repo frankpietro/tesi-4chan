@@ -57,16 +57,19 @@ def check_log():
     f = open("logfile.txt", "r")
     logs = f.readlines()
     errors = ''
+    last_warning = ''
     for log_line in reversed(logs):
-        if log_line.startswith("(S)"):
+        if log_line.startswith("(F)"):
             return {'_status': 'crawling_ended'}
         if log_line.startswith("(A)"):
             return {'_status': 'crawling_aborted'}
-        if log_line.startswith("(E)"):
-            errors += log_line
+        if log_line.startswith("(W)"):
+            if errors == '':
+                last_warning = log_line.replace("\n", "")
+            errors += log_line.replace("\n", " ")
 
     if errors != '':
-        return {'_status': 'warning', 'error_log': errors}
+        return {'_status': 'warning', 'last_warning': last_warning, 'warning_log': errors}
 
     return {'_status': 'crawling_ok'}
 
@@ -86,7 +89,7 @@ def delete_index():
 
             return {'_status': 'ok', 'deleted_index': request.args['index']}
 
-        return {'_status': 'error', 'error_type': 'index_not_existing', 'index': request.args['index']}
+        return error_json('index_not_existing')
 
     return error_json('index_not_specified')
 

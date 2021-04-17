@@ -13,12 +13,12 @@ def log_write(message):
     log_mess("(I)", message)
 
 
-def log_error(message):
-    log_mess("(E)", message)
+def log_warning(message):
+    log_mess("(W)", message)
 
 
 def log_end(message):
-    log_mess("(S)", message)
+    log_mess("(F)", message)
 
 
 def log_abort():
