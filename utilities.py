@@ -69,10 +69,10 @@ def connect():
 
 
 # load data on ElasticSearch
-def load(json_post):
+def load(index, json_post):
     try:
         es = Elasticsearch([{'host': 'localhost', 'port': '9200'}])
-        es.index(index='4chan_index', id=json_post['no'], body=json_post)
+        es.index(index=index, id=json_post['no'], body=json_post)
     except:
         log_warning(f"Error while loading post {json_post['no']} on Elasticsearch")
 
@@ -98,7 +98,7 @@ def all_boards():
 
 
 # returns info about every post and reply on a certain page
-def page_posts(board, threads):
+def page_posts(index, board, threads):
     page_posts_number = 0
     for i in range(0, len(threads)):
         endpoint = f"https://a.4cdn.org/{board}/thread/{threads[i]['no']}.json"
@@ -128,7 +128,7 @@ def page_posts(board, threads):
                 data['posts'][j][
                     'img_link'] = f"https://i.4cdn.org/{board}/{data['posts'][j]['tim']}{data['posts'][j]['ext']}"
 
-            load(data['posts'][j])
+            load(index, data['posts'][j])
             page_posts_number += 1
 
     return page_posts_number
@@ -191,7 +191,7 @@ def single_crawl(index, channel, max_process):
         else:
             log_write(f"Process {os.getpid()} working on board {channel} at page {i}")
             posts_number = 0
-            new_posts = page_posts(channel, data[i]['threads'])
+            new_posts = page_posts(index, channel, data[i]['threads'])
             if new_posts != -1:
                 posts_number += new_posts
 
@@ -199,7 +199,7 @@ def single_crawl(index, channel, max_process):
                 for k in range(1, crawl_num):
                     if max_process * k + i < len(data):
                         log_write(f"Process {os.getpid()} working on board {channel} at page {max_process * k + i}")
-                        new_posts = page_posts(channel, data[max_process * k + i]['threads'])
+                        new_posts = page_posts(index, channel, data[max_process * k + i]['threads'])
                         if new_posts != -1:
                             posts_number += new_posts
 
