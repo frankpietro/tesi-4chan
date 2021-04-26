@@ -42,7 +42,7 @@ clean_r = re.compile('<.*?>|&gt;&gt;[0-9]{1,8}|&([a-z0-9]+;|#[0-9]{1,6}|#x[0-9a-
 url_r = re.compile(r'(https?://\S+)')
 
 stop_words = set(stopwords.words('english'))
-stop_words.update({'I', "I'll", "I'm", '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'})
+stop_words.update({'i', "i'll", "i'm", "like", "one", "get", "that's", "go", "make", "still", "really", "post", "would", '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'})
 
 
 # useful for Flask APIs
