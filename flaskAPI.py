@@ -43,6 +43,7 @@ def crawl():
             'channel': request.args['channel'],
             'execution_time_seconds': execution_time,
             'parallel_process': proc_num,
+            'timestamp': datetime.now(),
             'total_posts': total_posts
         }
 

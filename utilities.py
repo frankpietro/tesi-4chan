@@ -42,7 +42,7 @@ clean_r = re.compile('<.*?>|&gt;&gt;[0-9]{1,8}|&([a-z0-9]+;|#[0-9]{1,6}|#x[0-9a-
 url_r = re.compile(r'(https?://\S+)')
 
 stop_words = set(stopwords.words('english'))
-stop_words.update({'i', "i'll", "i'm", "like", "one", "get", "that's", "go", "make", "still", "really", "post", "would", '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'})
+stop_words.update({"can't", "this", "that", "got", "have", "go", 'i', "i'd", "i've", "much", "could", "i'll", "i'm", "like", "one", "get", "that's", "go", "make", "still", "really", "post", "would", '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'})
 
 
 # useful for Flask APIs
@@ -119,10 +119,10 @@ def page_posts(index, board, threads):
 
                 data['posts'][j]['urls'] = find_urls(data['posts'][j]['plain_text'])
 
-                all_words = data['posts'][j]['plain_text'].lower().split()
+                all_words = data['posts'][j]['plain_text'].lower().replace(['.', ',', '?'], '').split()
 
                 data['posts'][j]['all_words'] = all_words
-                data['posts'][j]['words'] = [w for w in all_words if w not in stop_words]
+                data['posts'][j]['main_words'] = [w for w in all_words if w not in stop_words]
 
             if "tim" in data['posts'][j] and data['posts'][j]['ext'] != ".swf":
                 data['posts'][j][
