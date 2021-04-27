@@ -23,7 +23,7 @@ Example:
 Main function of the project. Takes three inputs and proceeds to load every post of the channel <channel> on the Elasticsearch index <index>, using a multiprocess approach with no more than <max_proc> parallel processes.
 During the execution, a log file is created and filled with logs about the execution. This log_file can be checked with /check_log.
 Does not output anything before every process has ended his crawling job.
-Returns either an error JSON if there is a non-recoverable error, or a JSON with informations about the execution such as execution time, effective parallel processes used and total post loaded.
+Returns either an error JSON if there is a non-recoverable error, or a JSON with informations about the execution such as execution time, effective parallel processes used, current timestamp and total post loaded.
 
 Examples:
 - localhost:5000/crawl?index=4chan_index&channel=f&max_proc=5
@@ -32,6 +32,7 @@ Examples:
     "channel": "f",
     "execution_time_seconds": 24.652,
     "parallel_process": 1,
+    "timestamp": "Tue, 27 Apr 2021 16:11:12 GMT",
     "total_posts": 55
   }
 
