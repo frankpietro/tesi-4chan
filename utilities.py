@@ -119,7 +119,7 @@ def page_posts(index, board, threads):
 
                 data['posts'][j]['urls'] = find_urls(data['posts'][j]['plain_text'])
 
-                all_words = data['posts'][j]['plain_text'].lower().replace(['.', ',', '?'], '').split()
+                all_words = data['posts'][j]['plain_text'].lower().replace('.', '').replace(',', '').replace('?', '').split()
 
                 data['posts'][j]['all_words'] = all_words
                 data['posts'][j]['main_words'] = [w for w in all_words if w not in stop_words]
