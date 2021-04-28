@@ -42,7 +42,7 @@ clean_r = re.compile('<.*?>|&gt;&gt;[0-9]{1,8}|&([a-z0-9]+;|#[0-9]{1,6}|#x[0-9a-
 url_r = re.compile(r'(https?://\S+)')
 
 stop_words = set(stopwords.words('english'))
-stop_words.update({"can't", "this", "that", "got", "have", "go", 'i', "i'd", "i've", "much", "could", "i'll", "i'm", "like", "one", "get", "that's", "go", "make", "still", "really", "post", "would", '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'})
+stop_words.update({"what's", "everything", "+", "anyone", "nothing", "instead", "already", "-", "another", "whatever", "enough", "everyone", "else", "never", "fuck", "don't", "ago", "someone", "many", "without", "they're", "since", "gonna", "around", "there's", "getting", "every", "any", "ever", "dont", "oh", "probably", "always", "something", "anything",  "also", "literally", "im", "though", "shit", "actually", "going", "yes", "shit", "well", "yeah", "even", "fucking", "us", "can't", "this", "that", "got", "have", "go", 'i', "i'd", "i've", "much", "could", "i'll", "i'm", "like", "one", "get", "that's", "go", "make", "still", "really", "post", "would", '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'})
 
 
 # useful for Flask APIs
