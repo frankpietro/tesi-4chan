@@ -33,7 +33,9 @@ def crawl():
         else:
             max_proc = processLimit
 
-        proc_num, total_posts, execution_time = single_crawl(request.args['index'], request.args['channel'], max_proc)
+        proc_num, total_posts, execution_time = single_crawl(
+            request.args['index'], request.args['channel'], max_proc
+        )
 
         if proc_num == 0:
             return error_json('crawling_aborted')
@@ -70,7 +72,11 @@ def check_log():
             errors += log_line.replace("\n", " ")
 
     if errors != '':
-        return {'_status': 'warning', 'last_warning': last_warning, 'warning_log': errors}
+        return {
+            '_status': 'warning',
+            'last_warning': last_warning,
+            'warning_log': errors
+        }
 
     return {'_status': 'crawling_ok'}
 
@@ -88,7 +94,10 @@ def delete_index():
             except:
                 return error_json('deletion_failed')
 
-            return {'_status': 'ok', 'deleted_index': request.args['index']}
+            return {
+                '_status': 'ok',
+                'deleted_index': request.args['index']
+            }
 
         return error_json('index_not_existing')
 
